@@ -5,11 +5,21 @@ using System.Text;
 
 namespace SudokuLib
 {
-    public class SudokuMap
+    public class SudukoMap
     {
         private static Random rand = new Random(DateTime.Now.Millisecond);
         private static int[] numberRow = { 1, 2, 3, 4, 5, 6, 7, 8, 9 };
         private static int[] AddNumber = { 0, 3, 6 };
+        private static List<Position> AllPosistions = new List<Position>();
+
+        static SudukoMap()
+        {
+            for (int r = 0; r < 9; r++)
+            for (int c = 0; c < 9; c++)
+            {
+                AllPosistions.Add(new Position() {row = r, col = c});
+            }
+        }
 
 
 
@@ -127,6 +137,21 @@ namespace SudokuLib
             return row;
         }
 
+        public static bool IsFull(int[,] tempMap)
+        {
+            bool full = true;
+            for (int r = 0; r < 9; r++)
+            {
+                for (int c = 0; c < 9; c++)
+                {
+                    if (tempMap[r,c] == 0)
+                        full = false;
+
+                }
+            }
+            return full;
+        }
+
 
         public static String PrintMap(int[,] tempMap)
         {
@@ -147,6 +172,51 @@ namespace SudokuLib
             sb.Append("\n");
 
             return sb.ToString();
+        }
+
+        public static int[,] GenerateMap(int NoOfNumbersBack)
+        {
+            if (NoOfNumbersBack <= 17)
+                throw new ArgumentException("Can not have a Suduko with less than 18 number try with " + NoOfNumbersBack );
+
+            
+
+            bool solution = false;
+            int[,] tempMap = null;
+
+            while (!solution)
+            {
+                tempMap = GenerateFullMap();
+
+                List<Position> restPositions = new List<Position>(AllPosistions);
+                while (restPositions.Count > NoOfNumbersBack)
+                {
+                    // remove next
+                    int ix = rand.Next(restPositions.Count);
+                    Position pos = restPositions[ix];
+                    tempMap[pos.row, pos.col] = 0;
+                    restPositions.RemoveAt(ix);
+                }
+
+
+                solution = CheckIfValid(tempMap);
+            }
+            return tempMap;
+        }
+
+        private static bool CheckIfValid(int[,] tempMap)
+        {
+            int[,] copyMap = new int[9,9];
+            for (int r = 0; r < 9; r++)
+            {
+                for (int c = 0; c < 9; c++)
+                {
+                    copyMap[r, c] = tempMap[r, c];
+                }
+            }
+
+            SudukoSolver solver = new SudukoSolver(copyMap);
+            return solver.ComputerSolution();
         }
     }
 }
